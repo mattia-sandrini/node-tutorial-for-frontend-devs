@@ -1,4 +1,5 @@
 var express = require('express');
+//var cors = require('cors')
 var router = express.Router();
 
 // Add headers
@@ -32,9 +33,9 @@ router.get('/pmv/:pmvId/content', function(req, res, next) {
     var body_msg = "-";
 
     if (pmvId == "1") {
-        body_msg = "<p style=\"color: red; font-family: 'Courier New'\">Hello from <spanstyle=\"color: blue; font-family: sans-serif\"><b>Node.js</b></span>.</p>";
+        body_msg = "<p style=\"color: red; font-family: 'Courier New'\">Hello **from** <span style=\"color: blue; font-family: sans-serif\"><b>Node.js</b></span>.</p>";
         res.send({ 
-            id: "contenuto_1",
+            id: "c1",
             type: "single-message",
             timestamp_creation: 1576160838,       
             timestamp_expiration: 1576180851, 
@@ -43,9 +44,9 @@ router.get('/pmv/:pmvId/content', function(req, res, next) {
         });
     }
     else if (pmvId == "2") {
-        body_msg = "<p style=\"color: red; font-family: 'Courier New'\">Lorem ipsum <spanstyle=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet.</p>";
+        body_msg = "<p style=\"color: red; font-family: 'Courier New'\">Lorem ipsum <span style=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet.</p>";
         res.send({ 
-            id: "contenuto_2",
+            id: "c2",
             type: "single-message",
             timestamp_creation: 1576160838,       
             timestamp_expiration: 1576180851, 
@@ -54,14 +55,14 @@ router.get('/pmv/:pmvId/content', function(req, res, next) {
         });
     }
     else if (pmvId == "3") {
-        body_msg_1 = "<p style=\"color: red; font-family: 'Courier New'\">Hello from <spanstyle=\"color: blue; font-family: sans-serif\"><b>Node.js</b></span>.</p>";
-        body_msg_2 = "<p style=\"color: blue; font-family: 'Courier New'\">Lorem ipsum <spanstyle=\"color: blue; font-family: sans-serif\"><i>dolor</i></span> sit <b>amet</b>.</p>";
-        body_msg_3 = "<p style=\"color: red; font-family: 'Courier New'\">Lorem ipsum <spanstyle=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet.</p>";
+        body_msg_1 = "<p style=\"color: red; font-family: 'Courier New'\">Hello <span style=\"color: blue; font-family: sans-serif\"><b>**World**</b></span>.</p>";
+        body_msg_2 = "<p style=\"color: blue; font-family: 'Courier New'\">Lorem **ipsum** <span style=\"color: blue; font-family: sans-serif\"><i>dolor</i></span> **sit <b>amet</b>**.</p>";
+        body_msg_3 = "<p style=\"color: red; font-family: 'Courier New'\">**Lorem ipsum <span style=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet**.</p>";
         res.send({ 
-            id: "contenuto_3",
+            id: "c3",
             type: "multiple-message",
             timestamp_creation: 1576160838,       
-            timestamp_expiration: 1576180851, 
+            timestamp_expiration: 1576680851, 
             timestamp_last_update: 1576160947,     
             bodies: [body_msg_1, body_msg_2, body_msg_3],
             rolling_interval: 10     // Secondi di visualizzazione di ogni messaggio 
@@ -76,6 +77,66 @@ router.get('/pmv/:pmvId/content', function(req, res, next) {
   
 
 
+// Il PMV aggiorna lo stato del contenuto visualizzato come feedback alla richiesta di ottenere il contenuto da visualizzare
+
+router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
+    var pmvId = req.params.pmvId;
+    var contentId = req.params.contentId;
+
+    var status = req.body.status;        // "displayed|expired|rejected"
+    //var error = req.body.error;
+    var timestamp = req.body.timestamp;
+
+    if (["1", "2", "3"].includes(pmvId)) {
+        if (req.body.hasOwnProperty("error")) {
+
+            // TODO: trattare la presenza dell'errore
+
+            res.send({success: "Feedback ricevuto.", 
+                // TODO: eliminare le righe sottostanti (utile solo in fase di test)
+                content_id: contentId,
+                status: status, 
+                error: req.body.error,
+                timestamp: timestamp
+            });
+        }
+        else {
+            // Tutto OK
+
+            res.send({success: "Feedback ricevuto.", 
+                // TODO: eliminare le righe sottostanti (utile solo in fase di test)
+                content_id: contentId,
+                status: status, 
+                timestamp: timestamp
+            });
+        }
+    }
+    else {
+        res.send({error: "Id \""+pmvId+"\" inesistente!"});
+        res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
+    }
+});
+
+
+router.put('/pmv/:pmvId/status', function(req, res) {
+    var pmvId = req.params.pmvId;
+
+    var status = req.body.status;    // "active/idle/stale" --> Il PMV può essere in modalità di visualizzazione del messaggio, o in stallo
+    var displayedContentId = req.body.displayed_content;
+    var timestamp = req.body.timestamp;
+
+    if (["1", "2", "3"].includes(pmvId)) {
+        res.send({success: "Stato aggiornato con successo.", 
+            // TODO: eliminare le righe sottostanti (utile solo in fase di test)
+            status: status, 
+            displayed_content: displayedContentId,
+            timestamp: timestamp
+        });
+    }
+    else {
+        res.send({error: "Id \""+pmvId+"\" inesistente!"});
+    }
+});
 
 
 
