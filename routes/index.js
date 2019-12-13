@@ -45,6 +45,7 @@ router.get('/pmv/:pmvId/content', function(req, res, next) {
     }
     else if (pmvId == "2") {
         body_msg = "<p style=\"color: red; font-family: 'Courier New'\">Lorem ipsum <span style=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet.</p>";
+        
         res.send({ 
             id: "c2",
             type: "single-message",
