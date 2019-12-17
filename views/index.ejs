@@ -3,9 +3,107 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+
+    <!-- Documentazione API: https://ckeditor.com/docs/ckeditor5/latest/api/index.html -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/15.0.0/classic/ckeditor.js"></script>
   </head>
   <body>
     <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <form>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="inputDispositivo">Dispositivo</label>
+          <select id="inputDispositivo" class="form-control">
+            <option selected value="">&lt;Scegli un dispositivo&gt;</option>
+          </select>
+        </div>
+      </div>
+        
+      <div class="form-row">
+        <fieldset class="form-group">
+          <div class="row">
+            <legend class="col-form-label col-sm-2 pt-0">Contenuto:</legend> <br />
+            <div class="col-sm-10">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto1" value="single-message" checked>
+                <label class="form-check-label" for="single-message">
+                  Messaggio Singolo
+                </label>
+              </div>
+              <div class="form-check-inline">
+                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto2" value="multiple-message">
+                <label class="form-check-label" for="multiple-message">
+                  Messaggio Multiplo
+                </label>
+              </div>
+              <div class="form-check-inline">
+                <label for="inputIntervallo">Intervallo(s)</label>
+                <select id="inputIntervallo" class="form-control">
+                  <option selected value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="15">15</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                  <option value="30">30</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+        
+      <div class="form-row">
+        <textarea name="content" id="editorContenuto1">
+          <p>Edita il tuo testo.</p>
+        </textarea>
+        <button class="btn btn-primary" id="btnSalva">Salva</button>
+      </div>
+    </form>
+
+      
+    <pre><code id="result"></code></pre>
+    <script>
+      String.prototype.replaceAll = function(search, replacement) {
+        var target = this;
+        return target.split(search).join(replacement);
+      };
+  
+      var editor1 = ClassicEditor
+        .create(document.querySelector('#editorContenuto1'), {
+          fontFamily: {
+            options: [
+              'default',
+              'Ubuntu, Arial, sans-serif', 
+              'Ubuntu Mono, Courier New, Courier, monospace'
+            ]
+          },
+          toolbar: [ 'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'fontFamily', 'fontColor', 'undo', 'redo' ],
+        })
+        .then(editor1 => {
+          function display_text() {
+            var data = editor1.getData();
+            
+            //data = data.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
+            data = data.replaceAll("&nbsp;", " ");
+            $("#result").text(data);
+          }
+  
+          editor1.model.document.on('change:data', () => {
+            //display_text();
+          });
+  
+          $("#btnSalva").click(function() { 
+            display_text();
+            return false;
+          });
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    </script>
+      
   </body>
 </html>
