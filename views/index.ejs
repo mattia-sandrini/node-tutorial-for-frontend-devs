@@ -10,11 +10,21 @@
     <!-- Documentazione API: https://ckeditor.com/docs/ckeditor5/latest/api/index.html -->
     <script src="https://cdn.ckeditor.com/ckeditor5/15.0.0/classic/ckeditor.js"></script>
 
+    <style>
+      #editors-container textarea {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        width: 100%;
+      }
+    </style>
+
     <script>
+
+      console.log(<%- JSON.stringify(device_list) %>);
 
       var device_list = <%- JSON.stringify(device_list) %>; 
       var selected_device_index = null;
-      var editors_data = [];
+      var editors_data = new Array();
 
       function getDeviceIndex(id) {
           for (let i = 0; i < device_list.length; i++) {
@@ -25,6 +35,26 @@
           return null;
       }
 
+      function formatDate(datetime) {
+        var year = datetime.getFullYear(),
+            month = datetime.getMonth() + 1, // months are zero indexed
+            day = datetime.getDate(),
+            hour = datetime.getHours(),
+            minute = datetime.getMinutes();
+        return day+'-'+month+'-'+year+' '+hour+':'+minute;
+      }
+
+      function formatTimestamp(timestamp) {
+        var datetime = new Date(timestamp*1000);
+        var year = datetime.getFullYear(),
+            month = datetime.getMonth() + 1, // months are zero indexed
+            day = datetime.getDate(),
+            hour = datetime.getHours(),
+            minute = datetime.getMinutes();
+        return day+'-'+month+'-'+year+' '+hour+':'+minute;
+      }
+        
+
 
       String.prototype.replaceAll = function(search, replacement) {
         var target = this;
@@ -33,7 +63,7 @@
 
       function createEditors() {
         var editors = [];
-        editors_data = [];
+        editors_data = new Array;
         var i = 0;
         $("textarea[name=content]").each(function() {
           //alert(this.id);
@@ -85,8 +115,39 @@
       $(document).ready(function() {
 
         $("#inputDispositivo").change(function() {
+          
           var index_device = getDeviceIndex($("#inputDispositivo").val());
           if (index_device != null) {
+            console.log(device_list[index_device]);
+
+            var html_status = "";
+            html_status += "<p><b>Stato:</b>" + device_list[index_device].status + "</p>";
+
+            html_status += "<p><b>Contenuto visualizzato:</b>";
+            html_status += "<ul>";
+            html_status += "<li>ID: "+device_list[index_device].content.id+"</li>";
+            html_status += "<li>Tipo: "+device_list[index_device].content.type+"</li>";
+            if (device_list[index_device].content.type == "multiple-message") {
+              html_status += "<li>Intervallo: "+device_list[index_device].content.rolling_interval+"</li>";
+            }
+            html_status += "<li>Creato il: "+formatTimestamp(device_list[index_device].content.timestamp_creation)+"</li>";
+            html_status += "<li>Modificato il: "+formatTimestamp(device_list[index_device].content.timestamp_last_update)+"</li>";
+            html_status += "<li>Scade il: "+formatTimestamp(device_list[index_device].content.timestamp_expiration)+"</li>";
+            html_status += "</ul>";
+
+            $("#device-status").html(html_status);
+
+
+
+            var timestamp_expiration = device_list[index_device].content.timestamp_expiration;
+            if (timestamp_expiration != null && timestamp_expiration > 0) {
+              console.log(timestamp_expiration);
+              var datetime = new Date(timestamp_expiration*1000);
+              $("#inputScadenzaContenuto").val(formatDate(datetime));
+            }
+            
+            
+
             if (device_list[index_device].content.type == "single-message") {
               $("#tipoContenuto-sm").prop('checked', true);
               $("#tipoContenuto-mm").prop('checked', false);
@@ -120,26 +181,117 @@
           var selValue = $('input[name=tipoContenuto]:checked').val(); 
           if (selValue == 'single-message') {
             $("#inputIntervallo").prop('disabled', true);
+            
+            /*$(".ck:not(:first)").each(function() {
+              $(this).css('visibility', 'hidden');
+            });*/
+            var html = "";
+            body = "";
+
+            if (device_list[selected_device_index].content.type == 'multiple-message') 
+              body = device_list[selected_device_index].content.bodies[0];
+            else 
+              body = device_list[selected_device_index].content.body;
+            
+            html += '<textarea name="content" id="editorContenuto-0">'+ body +'</textarea> <br />';
+            $("#editors-container").html(html);
+            editors = createEditors();
           }
           else if (selValue == 'multiple-message') {
             $("#inputIntervallo").prop('disabled', false);
+            
+            /*$(".ck").each(function() {
+              $(this).css('visibility', 'visible');
+            });*/
+            var html = "";
+            if (device_list[selected_device_index].content.type == 'multiple-message') {
+              device_list[selected_device_index].content.bodies.forEach((body, index) => { 
+                html += '<textarea name="content" id="editorContenuto-'+index+'">'+ body +'</textarea> <br />';
+              }); 
+              if (device_list[selected_device_index].content.bodies.lenght < 3) {
+                for (i=device_list[selected_device_index].content.bodies.length; i<3; i++) 
+                  html += '<textarea name="content" id="editorContenuto-'+i+'">'+ ' ' +'</textarea> <br />';
+              }
+            }
+            else {
+              html += '<textarea name="content" id="editorContenuto-0">'+ device_list[selected_device_index].content.body +'</textarea> <br />';
+              for (i=1; i<3; i++) 
+                  html += '<textarea name="content" id="editorContenuto-'+i+'">'+ ' ' +'</textarea> <br />';
+            }
+            $("#editors-container").html(html);
+            editors = createEditors();
           }
         });
 
 
         $("#btnSalva").click(function() { 
-          //display_text();
           setTimeout(function() {
-            //for (let i=0; i<editors_data.length; i++) {
-            //  console.log(editors_data[i]);
-            //}
             console.log(editors_data);
-            editors_data.forEach((editor_data, id) => {
-              console.log(editor_data);
+            
+            bodies = []
+            for (var id in editors_data) {
+              console.log(id + ' - ' + editors_data[id]);
+              bodies.push(editors_data[id]);
+            }
+
+            var pmv_id = device_list[selected_device_index].id;
+            var tipoContenuto = $('input[name=tipoContenuto]:checked').val();
+
+            if ($("#inputScadenzaContenuto").val() != undefined && $("#inputScadenzaContenuto").val() != "") {
+              var new_expiration = $("#inputScadenzaContenuto").val();
+              var date = new_expiration.split(" ")[0];
+              var time = new_expiration.split(" ")[1];
+              dateParts = date.split("-");
+              timeParts = time.split(":");
+
+              var dateObject = new Date(+dateParts[2], dateParts[1]-1, +dateParts[0], +timeParts[0], +timeParts[1]); 
+              console.log("New expiration datetime: ");
+              console.log(dateObject);
+
+              device_list[selected_device_index].content.timestamp_expiration = Math.round(dateObject.getTime()/1000);
+            }
+            
+
+            if (tipoContenuto == "single-message") {
+              pmv_data = {
+                id: pmv_id,
+                content: {
+                  id: device_list[selected_device_index].content.id,
+                  type: tipoContenuto,
+                  timestamp_creation: device_list[selected_device_index].content.timestamp_creation,       
+                  timestamp_expiration: device_list[selected_device_index].content.timestamp_expiration, 
+                  timestamp_last_update: Math.round(Date.now()/1000),     
+                  body: bodies[0],
+                }
+              }
+            }
+            else if (tipoContenuto == "multiple-message") {
+              pmv_data = {
+                id: pmv_id,
+                content: {
+                  id: device_list[selected_device_index].content.id,
+                  type: tipoContenuto,
+                  timestamp_creation: device_list[selected_device_index].content.timestamp_creation,       
+                  timestamp_expiration: device_list[selected_device_index].content.timestamp_expiration, 
+                  timestamp_last_update: Math.round(Date.now()/1000),     
+                  bodies: bodies,
+                  rolling_interval: $("#inputIntervallo").val() 
+                }
+              }
+            }
+            
+            console.log(pmv_data);
+
+            $.ajax({
+              type: "PUT",
+              url: '/pmv/'+pmv_id, 
+              contentType: "application/json",
+              data: JSON.stringify(pmv_data),
+              complete: function(data) {
+                console.log("Response to \"PUT /pmv/"+pmv_id+"\": ");
+                console.log(JSON.parse(data.responseText));
+              }
             });
-          //editors.forEach((editor, id) => {
-          //  console.log(editor.getData());
-          //});
           }, 500);
           
           return false;
@@ -149,60 +301,84 @@
   </head>
   <body>
     <h1><%= title %></h1>
-    <form>
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label for="inputDispositivo">Dispositivo</label>
-          <select id="inputDispositivo" class="form-control">
-            <option selected value="">&lt;Scegli un dispositivo&gt;</option>
-            <% device_list.forEach(function(device) { %>
-              <option value="<%= device.id %>"><%= device.id %></option>
-            <% }); %>
-          </select>
-        </div>
-      </div>
-        
-      <div class="form-row">
-        <fieldset class="form-group">
-          <div class="row">
-            <legend class="col-form-label col-sm-2 pt-0">Contenuto:</legend> <br />
-            <div class="col-sm-10">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto-sm" value="single-message" checked>
-                <label class="form-check-label" for="single-message">
-                  Messaggio Singolo
-                </label>
+    <div class="row">
+      <div class="col-md-6">
+        <form">
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="inputDispositivo">Dispositivo</label>
+              <select id="inputDispositivo" class="form-control">
+                <option selected value="">&lt;Scegli un dispositivo&gt;</option>
+                <% device_list.forEach(function(device) { %>
+                  <option value="<%= device.id %>"><%= device.id %></option>
+                <% }); %>
+              </select>
+            </div>
+          </div>
+            
+          <div class="form-row">
+            <fieldset class="form-group">
+              <div class="row">
+                <legend class="col-form-label col-sm-2 pt-0">Contenuto:</legend> <br />
+                <div class="col-sm-10">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto-sm" value="single-message" checked>
+                    <label class="form-check-label" for="single-message">
+                      Messaggio Singolo
+                    </label>
+                  </div>
+                  <div class="form-check-inline">
+                    <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto-mm" value="multiple-message">
+                    <label class="form-check-label" for="multiple-message">
+                      Messaggio Multiplo
+                    </label>
+                  </div>
+                  <div class="form-check-inline">
+                    <label for="inputIntervallo">Intervallo(s)</label>
+                    <select id="inputIntervallo" class="form-control">
+                      <option selected value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                      <option value="25">25</option>
+                      <option value="30">30</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div class="form-check-inline">
-                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto-mm" value="multiple-message">
-                <label class="form-check-label" for="multiple-message">
-                  Messaggio Multiplo
-                </label>
-              </div>
-              <div class="form-check-inline">
-                <label for="inputIntervallo">Intervallo(s)</label>
-                <select id="inputIntervallo" class="form-control">
-                  <option selected value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="15">15</option>
-                  <option value="20">20</option>
-                  <option value="25">25</option>
-                  <option value="30">30</option>
-                </select>
+            </fieldset>
+          </div>
+
+          <div class="form-row">
+            <div class='col-sm-6'>
+              <div class="form-group">
+                  <div class="input-group date">
+                      <label for="inputScadenzaContenuto">Scade il: </label>
+                      <input type="text" class="form-control" value="" id="inputScadenzaContenuto"> <!-- 17-12-2019 12:00 -->
+                      <div class="input-group-addon">
+                          <span class="glyphicon glyphicon-th"></span>
+                      </div>
+                  </div>
               </div>
             </div>
           </div>
-        </fieldset>
-      </div>
-    
-      <div class="form-row" id="editors-container">
-        
-      </div>
-      <div class="form-row">
-        <button class="btn btn-primary" id="btnSalva">Salva</button>
-      </div>
-    </form>
 
+          <div class="form-row" id="editors-container">
+            
+          </div>
+          <div class="form-row">
+            <button class="btn btn-primary" id="btnSalva">Salva</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-md-6">
+        <h2>Stato</h2>
+        <div id="device-status">
+
+        </div>
+      </div>
+    </div>
       
     <pre><code id="result"></code></pre>
     <script>

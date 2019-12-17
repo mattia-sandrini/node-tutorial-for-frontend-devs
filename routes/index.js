@@ -10,7 +10,7 @@ var device_list = [
             id: "c1",
             type: "multiple-message",
             timestamp_creation: 1576160838,       
-            timestamp_expiration: 1576680851, 
+            timestamp_expiration: 1576954800, 
             timestamp_last_update: 1576160947,     
             bodies: [
                 "<p  style=\"font-size: 40px; font-family: 'Courier New'\">Questo è il primo messaggio di una serie di 3 messaggi.</p>",
@@ -26,7 +26,7 @@ var device_list = [
             id: "c2",
             type: "single-message",
             timestamp_creation: 1576160838,       
-            timestamp_expiration: 1996326632, 
+            timestamp_expiration: 1576954800, 
             timestamp_last_update: 1576160947,     
             body: "<p style=\"color: #E74C3C; font-size: 25px; font-family: 'Courier New'\">Messaggio visualizzato su <span style=\"color: #2980B9; font-family: sans-serif\"><b><i>**PMV**</i></b></span>!</p><img src='https://www.engie.it/ENGIEit-theme/img/new-logo-blu.png' height='40px' width='auto' style='margin-right: 10px;' />",
         }
@@ -205,9 +205,10 @@ router.put('/pmv/:pmvId/status', function(req, res) {
         device_list[requested_device].displayed_content = displayedContentId;
 
         res.send({success: "Stato aggiornato con successo.", 
+            device: device_list[requested_device],
             // TODO: eliminare le righe sottostanti (utile solo in fase di test)
-            status: status, 
-            displayed_content: displayedContentId,
+            //status: status, 
+            //displayed_content: displayedContentId,
             timestamp: timestamp
         });
     }
@@ -227,6 +228,43 @@ router.put('/pmv/:pmvId/status', function(req, res) {
         res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
     }*/
 });
+
+
+
+router.put('/pmv/:pmvId', function(req, res) {
+    var pmvId = req.params.pmvId;
+
+    var content = req.body.content;   
+    var requested_device = getDeviceIndex(pmvId);
+
+    if (requested_device != null) {
+        device_list[requested_device].content = content;
+        res.send(device_list[requested_device]);
+    } 
+    else {
+        res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
