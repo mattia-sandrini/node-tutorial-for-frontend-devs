@@ -69,7 +69,7 @@ router.use(function (req, res, next) {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Test Engie' });
+  res.render('index', { title: 'Test Engie', device_list: device_list });
 });
 
 
@@ -152,11 +152,14 @@ router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
     var contentId = req.params.contentId;
 
     var status = req.body.status;        // "displayed|expired|rejected"
-    //var error = req.body.error;
     var timestamp = req.body.timestamp;
 
-    if (pmv_id_list.includes(pmvId)) {
+    var requested_device = getDeviceIndex(pmvId);
+
+    if (requested_device != null) {
         if (req.body.hasOwnProperty("error")) {
+            device_list[requested_device].content.status = status;
+            device_list[requested_device].content.error = req.body.error;
 
             // TODO: trattare la presenza dell'errore
 
@@ -170,6 +173,8 @@ router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
         }
         else {
             // Tutto OK
+            device_list[requested_device].content.status = status;
+            delete(device_list[requested_device].content.error);
 
             res.send({success: "Feedback ricevuto.", 
                 // TODO: eliminare le righe sottostanti (utile solo in fase di test)

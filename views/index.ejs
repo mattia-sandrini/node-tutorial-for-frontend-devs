@@ -3,12 +3,142 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-
+    
     <!-- Documentazione API: https://ckeditor.com/docs/ckeditor5/latest/api/index.html -->
     <script src="https://cdn.ckeditor.com/ckeditor5/15.0.0/classic/ckeditor.js"></script>
+
+    <script>
+
+      var device_list = <%- JSON.stringify(device_list) %>; 
+      var selected_device_index = null;
+      var editors_data = [];
+
+      function getDeviceIndex(id) {
+          for (let i = 0; i < device_list.length; i++) {
+              if (device_list[i].id == id) {
+                  return i;
+              }
+          }
+          return null;
+      }
+
+
+      String.prototype.replaceAll = function(search, replacement) {
+        var target = this;
+        return target.split(search).join(replacement);
+      };
+
+      function createEditors() {
+        var editors = [];
+        editors_data = [];
+        var i = 0;
+        $("textarea[name=content]").each(function() {
+          //alert(this.id);
+          
+          var temp_editor = ClassicEditor
+            .create(document.querySelector('#'+this.id), {
+              fontFamily: {
+                options: [
+                  'default',
+                  'Ubuntu, Arial, sans-serif', 
+                  'Ubuntu Mono, Courier New, Courier, monospace'
+                ]
+              },
+              toolbar: [ 'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'fontFamily', 'fontColor', 'undo', 'redo' ],
+            })
+            .then(temp_editor => {
+              function display_text() {
+                var data = temp_editor.getData();
+                
+                //data = data.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
+                data = data.replaceAll("&nbsp;", " ");
+                $("#result").text(data);
+              }
+      
+              temp_editor.model.document.on('change:data', () => {
+                //display_text();
+              });
+      
+              $("#btnSalva").click(function() { 
+                //display_text();
+                //console.log(temp_editor.getData());
+                editors_data[i] = temp_editor.getData();
+                return false;
+              });
+            })
+            .catch(error => {
+              console.error(error);
+            });
+            editors[i] = temp_editor;
+            i++;
+        });        
+      }
+
+
+      
+
+      $(document).ready(function() {
+
+        $("#inputDispositivo").change(function() {
+          var index_device = getDeviceIndex($("#inputDispositivo").val());
+          if (index_device != null) {
+            if (device_list[index_device].content.type == "single-message") {
+              $("#tipoContenuto-sm").prop('checked', true);
+              $("#tipoContenuto-mm").prop('checked', false);
+
+              $("#inputIntervallo").prop('disabled', true);
+
+              $("#editors-container").html('<textarea name="content" id="editorContenuto-0">'+device_list[index_device].content.body+'</textarea>');
+            }
+            else {
+              $("#tipoContenuto-sm").prop('checked', false);
+              $("#tipoContenuto-mm").prop('checked', true);
+
+              $("#inputIntervallo").prop('disabled', false);
+              $("#inputIntervallo").val(device_list[index_device].content.rolling_interval);
+
+              var html = "";
+              device_list[index_device].content.bodies.forEach((body, index) => { 
+                html += '<textarea name="content" id="editorContenuto-'+index+'">'+ body +'</textarea> <br />';
+              }); 
+              $("#editors-container").html(html);
+            }
+
+            createEditors();  // Creo i CKEditor in base alle text area appena introdotte/aggiornate
+          }
+
+          selected_device_index = index_device;
+        });
+
+
+        $('input[name=tipoContenuto]').change(function() {
+          var selValue = $('input[name=tipoContenuto]:checked').val(); 
+          if (selValue == 'single-message') {
+            $("#inputIntervallo").prop('disabled', true);
+          }
+          else if (selValue == 'multiple-message') {
+            $("#inputIntervallo").prop('disabled', false);
+          }
+        });
+
+
+        $("#btnSalva").click(function() { 
+          //display_text();
+          setTimeout(function() {
+            for (let i=0; i<editors_data.length; i++) {
+              console.log(editors_data[i]);
+            }
+          //editors.forEach(editor => {
+          //  console.log(editor.getData());
+          //});
+          //return false;
+          }, 500);
+        });
+      });
+    </script>
   </head>
   <body>
     <h1><%= title %></h1>
@@ -18,6 +148,9 @@
           <label for="inputDispositivo">Dispositivo</label>
           <select id="inputDispositivo" class="form-control">
             <option selected value="">&lt;Scegli un dispositivo&gt;</option>
+            <% device_list.forEach(function(device) { %>
+              <option value="<%= device.id %>"><%= device.id %></option>
+            <% }); %>
           </select>
         </div>
       </div>
@@ -28,13 +161,13 @@
             <legend class="col-form-label col-sm-2 pt-0">Contenuto:</legend> <br />
             <div class="col-sm-10">
               <div class="form-check">
-                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto1" value="single-message" checked>
+                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto-sm" value="single-message" checked>
                 <label class="form-check-label" for="single-message">
                   Messaggio Singolo
                 </label>
               </div>
               <div class="form-check-inline">
-                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto2" value="multiple-message">
+                <input class="form-check-input" type="radio" name="tipoContenuto" id="tipoContenuto-mm" value="multiple-message">
                 <label class="form-check-label" for="multiple-message">
                   Messaggio Multiplo
                 </label>
@@ -54,11 +187,11 @@
           </div>
         </fieldset>
       </div>
+    
+      <div class="form-row" id="editors-container">
         
+      </div>
       <div class="form-row">
-        <textarea name="content" id="editorContenuto1">
-          <p>Edita il tuo testo.</p>
-        </textarea>
         <button class="btn btn-primary" id="btnSalva">Salva</button>
       </div>
     </form>
@@ -66,12 +199,9 @@
       
     <pre><code id="result"></code></pre>
     <script>
-      String.prototype.replaceAll = function(search, replacement) {
-        var target = this;
-        return target.split(search).join(replacement);
-      };
+      
   
-      var editor1 = ClassicEditor
+      /*var editor1 = ClassicEditor
         .create(document.querySelector('#editorContenuto1'), {
           fontFamily: {
             options: [
@@ -102,7 +232,7 @@
         })
         .catch(error => {
           console.error(error);
-        });
+        });*/
     </script>
       
   </body>
