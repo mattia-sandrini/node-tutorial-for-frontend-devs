@@ -37,6 +37,7 @@
         var i = 0;
         $("textarea[name=content]").each(function() {
           //alert(this.id);
+          var textarea_id = this.id;
           
           var temp_editor = ClassicEditor
             .create(document.querySelector('#'+this.id), {
@@ -65,16 +66,17 @@
               $("#btnSalva").click(function() { 
                 //display_text();
                 //console.log(temp_editor.getData());
-                editors_data[i] = temp_editor.getData();
-                return false;
+                editors_data[textarea_id] = temp_editor.getData();
+                //return false;
               });
             })
             .catch(error => {
               console.error(error);
             });
-            editors[i] = temp_editor;
+            editors[textarea_id] = temp_editor;
             i++;
         });        
+        return editors;
       }
 
 
@@ -107,7 +109,7 @@
               $("#editors-container").html(html);
             }
 
-            createEditors();  // Creo i CKEditor in base alle text area appena introdotte/aggiornate
+            editors = createEditors();  // Creo i CKEditor in base alle text area appena introdotte/aggiornate
           }
 
           selected_device_index = index_device;
@@ -128,14 +130,19 @@
         $("#btnSalva").click(function() { 
           //display_text();
           setTimeout(function() {
-            for (let i=0; i<editors_data.length; i++) {
-              console.log(editors_data[i]);
-            }
-          //editors.forEach(editor => {
+            //for (let i=0; i<editors_data.length; i++) {
+            //  console.log(editors_data[i]);
+            //}
+            console.log(editors_data);
+            editors_data.forEach((editor_data, id) => {
+              console.log(editor_data);
+            });
+          //editors.forEach((editor, id) => {
           //  console.log(editor.getData());
           //});
-          //return false;
           }, 500);
+          
+          return false;
         });
       });
     </script>
