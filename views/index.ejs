@@ -110,9 +110,73 @@
       }
 
 
-      
+      function displayDeviceStatus(pmv_id) {
+        $.ajax({
+          url: '/pmv/'+pmv_id,
+          dataType: 'application/json',
+          complete: function(data) {
+            response = JSON.parse(data.responseText);
+            
+            if (!response.hasOwnProperty("error")) {
+              device = response;
+              console.log(device);
+              var html_status = "";
+
+              var device_status = device.status;
+              if (device_status == undefined)
+                device_status = "-";
+              
+              var style = "";
+              if (device_status == "active")
+                style = "color: green;";
+              if (device_status == "idle")
+                style = "color: orange;";
+              if (device_status == "stale")
+                style = "color: red;";
+
+              html_status += "<p><b>Stato:</b> <span style='"+style+"'>\"" + device_status + "\"</span></p>";
+
+              html_status += "<p><b>Contenuto visualizzato:</b>";
+              html_status += "<ul>";
+              html_status += "<li>ID: "+device.content.id+"</li>";
+
+              var content_status = device.content.status;
+              if (content_status == undefined)
+                content_status = "-";
+              var style = "";
+              if (content_status == "displayed")
+                style = "color: green;";
+              if (content_status == "expired")
+                style = "color: red;";
+                
+              html_status += "<li>Stato: <span style='"+style+"'>\""+content_status+"\"</span></li>";
+              html_status += "<li>Tipo: "+device.content.type+"</li>";
+              if (device.content.type == "multiple-message") {
+                html_status += "<li>Intervallo: "+device.content.rolling_interval+"</li>";
+              }
+              html_status += "<li>Creato il: "+formatTimestamp(device.content.timestamp_creation)+"</li>";
+              html_status += "<li>Modificato il: "+formatTimestamp(device.content.timestamp_last_update)+"</li>";
+              html_status += "<li>Scade il: "+formatTimestamp(device.content.timestamp_expiration)+"</li>";
+              html_status += "</ul>";
+
+              $("#device-status").html(html_status);
+            }
+            else {
+              console.log("Errore nella richiesta per ottenere il contenuto: \n" + response["error"]);
+            }
+          },
+          success: function(data) {
+          }
+        });
+      }
 
       $(document).ready(function() {
+
+        setInterval(function() {
+          if (selected_device_index != null) {
+            displayDeviceStatus(device_list[selected_device_index].id);
+          }
+        }, 5000);
 
         $("#inputDispositivo").change(function() {
           
@@ -120,25 +184,8 @@
           if (index_device != null) {
             console.log(device_list[index_device]);
 
-            var html_status = "";
-            html_status += "<p><b>Stato:</b>" + device_list[index_device].status + "</p>";
-
-            html_status += "<p><b>Contenuto visualizzato:</b>";
-            html_status += "<ul>";
-            html_status += "<li>ID: "+device_list[index_device].content.id+"</li>";
-            html_status += "<li>Tipo: "+device_list[index_device].content.type+"</li>";
-            if (device_list[index_device].content.type == "multiple-message") {
-              html_status += "<li>Intervallo: "+device_list[index_device].content.rolling_interval+"</li>";
-            }
-            html_status += "<li>Creato il: "+formatTimestamp(device_list[index_device].content.timestamp_creation)+"</li>";
-            html_status += "<li>Modificato il: "+formatTimestamp(device_list[index_device].content.timestamp_last_update)+"</li>";
-            html_status += "<li>Scade il: "+formatTimestamp(device_list[index_device].content.timestamp_expiration)+"</li>";
-            html_status += "</ul>";
-
-            $("#device-status").html(html_status);
-
-
-
+            displayDeviceStatus(device_list[index_device].id);
+        
             var timestamp_expiration = device_list[index_device].content.timestamp_expiration;
             if (timestamp_expiration != null && timestamp_expiration > 0) {
               console.log(timestamp_expiration);
@@ -293,6 +340,12 @@
               }
             });
           }, 500);
+
+          if (selected_device_index != null) {
+            setTimeout(function() {
+              displayDeviceStatus(device_list[selected_device_index].id);
+            }, 1000);
+          }
           
           return false;
         });
