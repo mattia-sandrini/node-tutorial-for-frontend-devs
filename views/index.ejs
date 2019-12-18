@@ -41,6 +41,8 @@
       var selected_device_index = null;
       var editors_data = new Array();
 
+      var timestamp_clear_logs = 0;
+
       function getDeviceIndex(id) {
           for (let i = 0; i < device_list.length; i++) {
               if (device_list[i].id == id) {
@@ -80,7 +82,6 @@
         editors_data = new Array;
         var i = 0;
         $("textarea[name=content]").each(function() {
-          //alert(this.id);
           var textarea_id = this.id;
           
           var temp_editor = ClassicEditor
@@ -102,14 +103,10 @@
                 data = data.replaceAll("&nbsp;", " ");
                 $("#result").text(data);
               }
-      
               temp_editor.model.document.on('change:data', () => {
                 //display_text();
               });
-      
               $("#btnSalva").click(function() { 
-                //display_text();
-                //console.log(temp_editor.getData());
                 editors_data[textarea_id] = temp_editor.getData();
                 //return false;
               });
@@ -199,9 +196,17 @@
                 });  
               }
 
+              $("#device-status").append('<button id="clear_logs">Pulisci Logs</button>');
+              $("#clear_logs").click(function() {
+                timestamp_clear_logs = Math.round(Date.now()/1000);
+                displayDeviceStatus(device.id);
+              });
+
               var html_logs = "<ol>";
               for (var id in logs) {
-                html_logs += "<li> <b>"+logs[id].type+"</b> - " + formatTimestamp(logs[id].timestamp) + ": " + logs[id].msg+"</li>";
+                console.log("timestamp_clear_logs: " + timestamp_clear_logs + " - int(logs[id].timestamp): " + logs[id].timestamp);
+                if (logs[id].timestamp > timestamp_clear_logs)
+                  html_logs += "<li> <b>"+logs[id].type+"</b> - " + formatTimestamp(logs[id].timestamp) + ": " + logs[id].msg+"</li>";
               }
               html_logs += "</ol>";
               $("#device-status").append(html_logs);
@@ -275,10 +280,6 @@
           var selValue = $('input[name=tipoContenuto]:checked').val(); 
           if (selValue == 'single-message') {
             $("#inputIntervallo").prop('disabled', true);
-            
-            /*$(".ck:not(:first)").each(function() {
-              $(this).css('visibility', 'hidden');
-            });*/
             var html = "";
             body = "";
 
@@ -293,10 +294,6 @@
           }
           else if (selValue == 'multiple-message') {
             $("#inputIntervallo").prop('disabled', false);
-            
-            /*$(".ck").each(function() {
-              $(this).css('visibility', 'visible');
-            });*/
             var html = "";
             if (device_list[selected_device_index].content.type == 'multiple-message') {
               device_list[selected_device_index].content.bodies.forEach((body, index) => { 
@@ -339,8 +336,6 @@
               timeParts = time.split(":");
 
               var dateObject = new Date(+dateParts[2], dateParts[1]-1, +dateParts[0], +timeParts[0], +timeParts[1]); 
-              console.log("New expiration datetime: ");
-              console.log(dateObject);
 
               device_list[selected_device_index].content.timestamp_expiration = Math.round(dateObject.getTime()/1000);
             }
@@ -400,7 +395,7 @@
     </script>
   </head>
   <body>
-    <h1><%= title %></h1>
+    <h3><%= title %></h3>
     <div class="row">
       <div class="col-md-6">
         <form">
@@ -481,42 +476,5 @@
     </div>
       
     <!--<pre><code id="result"></code></pre>-->
-    <script>
-      
-  
-      /*var editor1 = ClassicEditor
-        .create(document.querySelector('#editorContenuto1'), {
-          fontFamily: {
-            options: [
-              'default',
-              'Ubuntu, Arial, sans-serif', 
-              'Ubuntu Mono, Courier New, Courier, monospace'
-            ]
-          },
-          toolbar: [ 'heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'fontFamily', 'fontColor', 'undo', 'redo' ],
-        })
-        .then(editor1 => {
-          function display_text() {
-            var data = editor1.getData();
-            
-            //data = data.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;');
-            data = data.replaceAll("&nbsp;", " ");
-            $("#result").text(data);
-          }
-  
-          editor1.model.document.on('change:data', () => {
-            //display_text();
-          });
-  
-          $("#btnSalva").click(function() { 
-            display_text();
-            return false;
-          });
-        })
-        .catch(error => {
-          console.error(error);
-        });*/
-    </script>
-      
   </body>
 </html>
