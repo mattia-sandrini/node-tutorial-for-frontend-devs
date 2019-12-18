@@ -3,12 +3,6 @@ var express = require('express');
 var router = express.Router();
 
 
-
-
-
-var pmv_id_list = ["ENGIEPMVTEST", "ENGIETEST"];
-
-
 function getDeviceIndex(device_list, id) {
     for (let i = 0; i < device_list.length; i++) {
         if (device_list[i].id == id) {
@@ -132,6 +126,7 @@ router.put('/pmv/:pmvId/status', function(req, res) {
     if (requested_device != null) {
         device_list[requested_device].status = status;
         device_list[requested_device].displayed_content = displayedContentId;
+        device_list[requested_device].last_heartbeat = timestamp;
 
         req.app.locals.logs[device_list[requested_device].id].push({ type: 'info', msg: 'PMV "'+pmvId+'" -> Stato: '+status, timestamp: timestamp });
 

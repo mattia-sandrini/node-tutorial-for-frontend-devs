@@ -202,8 +202,8 @@
                 displayDeviceStatus(device.id);
               });
 
-              var html_logs = "<ol>";
-              for (var id in logs) {
+              var html_logs = "<ol reversed>";
+              for (var id in logs.reverse()) {
                 console.log("timestamp_clear_logs: " + timestamp_clear_logs + " - int(logs[id].timestamp): " + logs[id].timestamp);
                 if (logs[id].timestamp > timestamp_clear_logs)
                   html_logs += "<li> <b>"+logs[id].type+"</b> - " + formatTimestamp(logs[id].timestamp) + ": " + logs[id].msg+"</li>";
