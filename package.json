@@ -11,6 +11,23 @@
     "ejs": "~2.5.7",
     "express": "~4.16.0",
     "http-errors": "~1.6.2",
-    "morgan": "~1.9.0"
+    "morgan": "~1.9.0",
+
+    "@ckeditor/ckeditor5-adapter-ckfinder": "^15.0.0",
+    "@ckeditor/ckeditor5-autoformat": "^15.0.0",
+    "@ckeditor/ckeditor5-basic-styles": "^15.0.0",
+    "@ckeditor/ckeditor5-block-quote": "^15.0.0",
+    "@ckeditor/ckeditor5-easy-image": "^15.0.0",
+    "@ckeditor/ckeditor5-editor-classic": "^15.0.0",
+    "@ckeditor/ckeditor5-essentials": "^15.0.0",
+    "@ckeditor/ckeditor5-heading": "^15.0.0",
+    "@ckeditor/ckeditor5-image": "^15.0.0",
+    "@ckeditor/ckeditor5-link": "^15.0.0",
+    "@ckeditor/ckeditor5-list": "^15.0.0",
+    "@ckeditor/ckeditor5-paragraph": "^15.0.0",
+    "@ckeditor/ckeditor5-theme-lark": "^15.0.0",
+    "@ckeditor/ckeditor5-upload": "^15.0.0",
+    "@ckeditor/ckeditor5-upload": "^15.0.0",
+    "@ckeditor/ckeditor5-upload": "^15.0.0"
   }
 }

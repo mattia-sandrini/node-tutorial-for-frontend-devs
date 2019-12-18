@@ -4,6 +4,37 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-basic-styles");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-easy-image");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-editor-classic");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-essentials");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-heading");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-image");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-list");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-paragraph");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-theme-lark");
+var ckeditorBasicStyle = require("@ckeditor/ckeditor5-upload");
+var ckeditorBasicStyle = require("");
+var ckeditorBasicStyle = require("");
+var ckeditorBasicStyle = require("");
+var ckeditorBasicStyle = require("");
+var ckeditorBasicStyle = require("");
+
+"@ckeditor/ckeditor5-adapter-ckfinder": "^15.0.0",
+    "@ckeditor/ckeditor5-autoformat": "^15.0.0",
+    "": "^15.0.0",
+    "@ckeditor/ckeditor5-block-quote": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0",
+    "@ckeditor/ckeditor5-link": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0",
+    "": "^15.0.0"
+
 //var monk = require('monk');
 //var db = monk('localhost:27017/nodetest1');
 
