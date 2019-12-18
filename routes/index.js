@@ -44,73 +44,15 @@ router.use(function (req, res, next) {
 /* GET home page. */
 router.get('/', function(req, res, next) {
   var device_list = req.app.locals.device_list;
-  res.render('index', { title: 'Test Engie', device_list: device_list });
+  res.render('index', { title: 'Ambiente di Test: Integrazione PMV/Totem - Livin\'', device_list: device_list });
 });
 
 
 /* Prevede la discriminazione dei contenuti in base all'id del pmv specificato nella URL */
 router.get('/pmv/:pmvId/content', function(req, res, next) {
     var device_list = req.app.locals.device_list;
-
     var pmvId = req.params.pmvId;
-    var body_msg = "-";
-
-    console.log(pmvId);
-
-    /*if (pmvId == "1") {
-        body_msg = "<p style=\"color: red; font-family: 'Courier New'\">Hello **from** <span style=\"color: blue; font-family: sans-serif\"><b>Node.js</b></span>.</p>";
-        res.send({ 
-            id: "c1",
-            type: "single-message",
-            timestamp_creation: 1576160838,       
-            timestamp_expiration: 1576180851, 
-            timestamp_last_update: 1576160947,     
-            body: body_msg
-        });
-    }
-    else if (pmvId == "ENGIEPMVTEST") {
-        //body_msg = "<pstyle=\"color: red; font-family: 'Courier New'\">Lorem ipsum **dolor** sit amet.</p> <p style=\"color: red; font-family: 'Courier New'\">Lorem **ipsum** <span style=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet.</p>";
-        
-        body_msg = "<p style=\"color: #E74C3C; font-size: 25px; font-family: 'Courier New'\">Messaggio visualizzato su <span style=\"color: #2980B9; font-family: sans-serif\"><b><i>**PMV**</i></b></span>!</p><img src='https://www.engie.it/ENGIEit-theme/img/new-logo-blu.png' height='40px' width='auto' style='margin-right: 10px;' />";
-
-        res.send({ 
-            id: "c2",
-            type: "single-message",
-            timestamp_creation: 1576160838,       
-            timestamp_expiration: 1996326632, 
-            timestamp_last_update: 1576160947,     
-            body: body_msg
-        });
-    }
-    else if (pmvId == "ENGIETEST") {
-        //body_msg_1 = "<p style=\"color: red; font-family: 'Courier New'\">Hello <span style=\"color: blue; font-family: sans-serif\"><b>**World**</b></span>.</p>";
-        //body_msg_2 = "<p style=\"color: blue; font-family: 'Courier New'\">Lorem **ipsum** <span style=\"color: blue; font-family: sans-serif\"><i>dolor</i></span> **sit <b>amet</b>**.</p>";
-        //body_msg_3 = "<p style=\"color: red; font-family: 'Courier New'\">**Lorem ipsum <span style=\"color: blue; font-family: sans-serif\"><b>dolor</b></span> sit amet**.</p>";
-        
-        body_msg_1 = "<p  style=\"font-size: 40px; font-family: 'Courier New'\">Questo è il primo messaggio di una serie di 3 messaggi.</p>";
-        body_msg_2 = "<p style=\"color: #E74C3C; font-size: 40px; font-family: 'Courier New'\">Questo è il secondo messaggio, che a differenza del primo possiede una <span style=\"color: #2980B9; font-family: sans-serif\"><b><i>formattazione</i></b></span> del testo.</p>";
-        body_msg_3 = "<p style=\"font-size: 40px; font-family: 'Courier New'\">L'ultimo messaggio dimostra il funzionamento di **lampeggio** del testo.</p>";
-
-        //res.send(device_list[0].content);
-        res.send({ 
-            id: "c3",
-            type: "multiple-message",
-            timestamp_creation: 1576160838,       
-            timestamp_expiration: 1576680851, 
-            timestamp_last_update: 1576160947,     
-            bodies: [body_msg_1, body_msg_2, body_msg_3],
-            rolling_interval: 10     // Secondi di visualizzazione di ogni messaggio 
-        });
-    }*/
-
     var requested_device = getDeviceIndex(device_list, pmvId);
-    /*device_list.forEach(device => {
-        if (device.id == pmvId) {
-            requested_device = device;
-            console.log(requested_device);
-            break;
-        }
-    });*/
 
     if (requested_device != null) {
         res.send(device_list[requested_device].content);
@@ -140,6 +82,8 @@ router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
             device_list[requested_device].content.status = status;
             device_list[requested_device].content.error = req.body.error;
 
+            req.app.locals.logs[device_list[requested_device].id].push({ type: 'error', msg: req.body.error, timestamp: timestamp });
+
             // TODO: trattare la presenza dell'errore
 
             res.send({success: "Feedback ricevuto.", 
@@ -155,6 +99,8 @@ router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
             // Tutto OK
             device_list[requested_device].content.status = status;
             delete(device_list[requested_device].content.error);
+
+            req.app.locals.logs[device_list[requested_device].id].push({ type: 'info', msg: 'PMV "'+pmvId+'" -> Content "'+device_list[requested_device].content.id+'": '+status, timestamp: timestamp });
 
             res.send({success: "Feedback ricevuto.", 
                 device: device_list[requested_device],
@@ -186,6 +132,8 @@ router.put('/pmv/:pmvId/status', function(req, res) {
     if (requested_device != null) {
         device_list[requested_device].status = status;
         device_list[requested_device].displayed_content = displayedContentId;
+
+        req.app.locals.logs[device_list[requested_device].id].push({ type: 'info', msg: 'PMV "'+pmvId+'" -> Stato: '+status, timestamp: timestamp });
 
         res.send({success: "Stato aggiornato con successo.", 
             device: device_list[requested_device],
@@ -224,7 +172,7 @@ router.get('/pmv/:pmvId', function(req, res) {
     var requested_device = getDeviceIndex(device_list, pmvId);
 
     if (requested_device != null) {
-        res.send(device_list[requested_device]);
+        res.send({device: device_list[requested_device], logs: req.app.locals.logs[device_list[requested_device].id]});
     } 
     else {
         res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
@@ -242,6 +190,20 @@ router.put('/pmv/:pmvId', function(req, res) {
     if (requested_device != null) {
         device_list[requested_device].content = content;
         res.send(device_list[requested_device]);
+    } 
+    else {
+        res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
+    }
+});
+
+router.get('/pmv/:pmvId/logs', function(req, res) {
+    var device_list = req.app.locals.device_list;
+
+    var pmvId = req.params.pmvId;
+    var requested_device = getDeviceIndex(device_list, pmvId);
+
+    if (requested_device != null) {
+        res.send(req.app.locals.logs[device_list[requested_device].id]);
     } 
     else {
         res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});

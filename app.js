@@ -78,4 +78,8 @@ app.locals.device_list = [
   }
 ];
 
+app.locals.logs = new Array();
+app.locals.logs["ENGIETEST"] = [];
+app.locals.logs["ENGIEPMVTEST"] = [];
+
 module.exports = app;
