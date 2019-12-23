@@ -42,7 +42,17 @@ router.get('/', function(req, res, next) {
 });
 
 
-/* Prevede la discriminazione dei contenuti in base all'id del pmv specificato nella URL */
+function getDeviceIndex(device_list, id) {
+    for (let i = 0; i < device_list.length; i++) {
+        if (device_list[i].id == id) {
+            return i;
+        }
+    }
+    return null;
+}
+
+
+/* Permette la discriminazione dei contenuti in base all'id del pmv specificato nella URL */
 router.get('/pmv/:pmvId/content', function(req, res, next) {
     var device_list = req.app.locals.device_list;
     var pmvId = req.params.pmvId;
@@ -110,7 +120,7 @@ router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
     }
 });
 
-
+// Heartbeat
 router.put('/pmv/:pmvId/status', function(req, res) {
     var device_list = req.app.locals.device_list;
 
@@ -140,19 +150,7 @@ router.put('/pmv/:pmvId/status', function(req, res) {
     }
     else {
         res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
-    } 
-
-    /*if (pmv_id_list.includes(pmvId)) {
-        res.send({success: "Stato aggiornato con successo.", 
-            // TODO: eliminare le righe sottostanti (utile solo in fase di test)
-            status: status, 
-            displayed_content: displayedContentId,
-            timestamp: timestamp
-        });
     }
-    else {
-        res.status(404).send({error: "Id \""+pmvId+"\" inesistente!"});
-    }*/
 });
 
 
