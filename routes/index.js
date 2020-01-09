@@ -70,12 +70,13 @@ router.get('/pmv/:pmvId/content', function(req, res, next) {
 
 // Il PMV aggiorna lo stato del contenuto visualizzato come feedback alla richiesta di ottenere il contenuto da visualizzare
 
-router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
+//router.put('/pmv/:pmvId/content/:contentId', function(req, res) {
+router.put('/pmv/:pmvId/content', function(req, res) {
     var device_list = req.app.locals.device_list;
 
     var pmvId = req.params.pmvId;
-    var contentId = req.params.contentId;
 
+    var contentId = req.body.content_id;
     var status = req.body.status;        // "displayed|expired|rejected"
     var timestamp = req.body.timestamp;
 

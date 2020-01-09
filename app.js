@@ -55,7 +55,7 @@ app.locals.device_list = [
           id: "c1",
           type: "multiple-message",
           timestamp_creation: 1576160838,       
-          timestamp_expiration: 1576954800, 
+          timestamp_expiration: 1583051400, 
           timestamp_last_update: 1576160947,     
           bodies: [
               "<p  style=\"font-size: 40px; font-family: 'Courier New'\">Questo è il primo messaggio di una serie di 3 messaggi.</p>",
@@ -72,7 +72,7 @@ app.locals.device_list = [
           id: "c2",
           type: "single-message",
           timestamp_creation: 1576160838,       
-          timestamp_expiration: 1576954800, 
+          timestamp_expiration: 1583051400, 
           timestamp_last_update: 1576160947,     
           body: "<p style=\"color: #E74C3C; font-size: 25px; font-family: 'Courier New'\">Messaggio visualizzato su <span style=\"color: #2980B9; font-family: sans-serif\"><b><i>**PMV**</i></b></span>!</p><img src='https://www.engie.it/ENGIEit-theme/img/new-logo-blu.png' height='40px' width='auto' style='margin-right: 10px;' />",
       },
